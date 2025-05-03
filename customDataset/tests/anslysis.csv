@@ -1,0 +1,11 @@
+cr2b6_id,cr2b6_method,cr2b6_value,cr2b6_samplename,cr2b6_expectedvalue,cr2b6_sampleid
+1036,pH,5.0,Sample 1,5pH,123
+1036,Temperature,20,Sample 1,22C,123
+1037,pH,,Sample 2,4.6pH,456
+1037,APC,<10,Sample 2,<10,456
+1038,pH,,Sample 3,6.8pH,789
+1038,Temperature,19,Sample 3,21C,789
+1039,pH,5.2,Sample 4,5.2pH,321
+1039,APC,15,Sample 4,<10,321
+1040,Conductivity,500,Sample 5,480μS,654
+1040,Temperature,22,Sample 5,22C,654

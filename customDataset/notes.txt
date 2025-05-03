@@ -1,0 +1,111 @@
+----Notes on pushing solution to Dataverse Environment----
+
+Make a subdirectory: mkdir Solution
+Go to solution folder: cd Solution
+Create solution: pac solution init --publisher-name Malone --publisher-prefix malone
+Add solution reference to component: pac solution add-reference --path /Users/matthewmalone/Documents/Builds/PowerApps/customDataset
+Create unmanaged solution ZIP file in Debug folder: msbuild /t:build
+
+Create Auth to Dataverse: pac auth create --url https://org8ef10ef2.crm.dynamics.com
+
+{
+    "_record": {
+        "initialized": 2,
+        "identifier": {
+            "etn": "cr2b6_analysis",
+            "id": {
+                "guid": "5391888c-2025-f011-8c4d-7c1e526b30e9"
+            }
+        },
+        "fields": {
+            "cr2b6_sample": {
+                "reference": {
+                    "etn": "cr2b6_sample",
+                    "id": {
+                        "guid": "4d91888c-2025-f011-8c4d-7c1e526b30e9"
+                    },
+                    "name": "25-HTS-12-3A-0HR"
+                },
+                "timestamp": "2025-05-02T21:05:08.530Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_expectedvalue": {
+                "value": "5pH",
+                "timestamp": "2025-05-02T21:05:08.530Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_method": {
+                "reference": {
+                    "etn": "cr2b6_analyticalmethod",
+                    "id": {
+                        "guid": "325674fe-3769-4831-a7a9-78ff9b71d927"
+                    },
+                    "name": "pH"
+                },
+                "timestamp": "2025-05-02T21:05:08.530Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit": {
+                "attributeLogicalName": "cr2b6_unit",
+                "entityLogicalName": "cr2b6_analyticalmethod",
+                "innerValue": {
+                    "value": "pH",
+                    "timestamp": "2025-05-02T21:05:08.530Z",
+                    "validationResult": {
+                        "errorId": null,
+                        "errorMessage": null,
+                        "isValueValid": true,
+                        "userInput": null,
+                        "isOfflineSyncError": false
+                    }
+                },
+                "timestamp": "2025-05-02T21:05:08.530Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                },
+                "innerType": "string"
+            },
+            "cr2b6_id": {
+                "value": "1036",
+                "timestamp": "2025-05-02T21:05:08.530Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            }
+        }
+    },
+    "_columnAliasNameMap": {},
+    "_primaryFieldName": "cr2b6_id",
+    "_isDirty": false,
+    "_entityReference": {
+        "_etn": "cr2b6_analysis",
+        "_id": "5391888c-2025-f011-8c4d-7c1e526b30e9",
+        "_name": "1036"
+    }
+}
