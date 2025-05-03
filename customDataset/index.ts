@@ -55,7 +55,7 @@ export class customDataset
     }
 
     // Log the datasets for debugging
-    console.log("Version 0.0.5");
+    console.log("Version 0.0.6");
     console.log("Analysis records:", analysesDataset.records);
     console.log("Sample records:", sampleDataset.records);
 
@@ -66,22 +66,17 @@ export class customDataset
       )
     );
 
+    console.log("Valid Sample GUIDs:", validSampleGuids);
+
     //Filter analysis records to only include those with valid sample IDs
-    const filteredAnalysisRecords = analysesDataset.sortedRecordIds.filter(
+    const filteredAnalysisRecordIds = analysesDataset.sortedRecordIds.filter(
       (recordId) => {
         const record = analysesDataset.records[recordId];
-        const sampleRef = record.getValue(
-          "cr2b6_sample"
-        ) as ComponentFramework.LookupValue;
-        const sampleId =
-          typeof sampleRef?.id === "object" && sampleRef?.id !== null
-            ? (sampleRef.id as { guid: string }).guid
-            : null;
-
+        const sampleId = record.getRecordId(); // Get the record ID directly
         return sampleId && validSampleGuids.has(sampleId);
       }
     );
-    console.log("Filtered Analysis Records:", filteredAnalysisRecords);
+    console.log("Filtered Analysis Records:", filteredAnalysisRecordIds);
 
     // Create a map to store sample(name and id) and analysis values (method, value, expected, required)
     const sampleMethodMap: Record<
@@ -95,26 +90,23 @@ export class customDataset
 
     const methodNames = new Set<string>();
 
+    // ----- Use this block for PRODUCTION -----
     // Iterate through the analysis dataset records
-    for (const recordId of analysesDataset.sortedRecordIds) {
+    for (const recordId of filteredAnalysisRecordIds) {
       const record = analysesDataset.records[recordId];
-
-      // ----- Use this block for PRODUCTION -----
       const sampleRef = record.getValue(
         "cr2b6_sample"
       ) as ComponentFramework.LookupValue;
       const sampleName = sampleRef?.name ?? "Unknown Sample";
-      const sampleId =
-        typeof sampleRef?.id === "object" && sampleRef?.id !== null
-          ? (sampleRef.id as { guid: string }).guid
-          : "Unknown";
-
+      const sampleId = record.getRecordId(); // Get the record ID directly
       const methodRef = record.getValue(
         "cr2b6_method"
       ) as ComponentFramework.LookupValue;
       const method = methodRef?.name ?? "Unknown Method";
 
       // ----- Use this block for TESTING -----
+      // for (const recordId of analysesDataset.sortedRecordIds) {
+      //   const record = analysesDataset.records[recordId];
       //   const method =
       //     (record.getValue("cr2b6_method") as string) || "Unknown Method";
       //   const sampleName =

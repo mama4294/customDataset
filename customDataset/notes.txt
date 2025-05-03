@@ -109,3 +109,90 @@ Create Auth to Dataverse: pac auth create --url https://org8ef10ef2.crm.dynamics
         "_name": "1036"
     }
 }
+
+
+
+{
+    "_record": {
+        "initialized": 2,
+        "identifier": {
+            "etn": "cr2b6_sample",
+            "id": {
+                "guid": "ed75c638-c626-f011-8c4d-7c1e526b30e9"
+            }
+        },
+        "fields": {
+            "cr2b6_id": {
+                "value": "25-HTS-12-3B-0HR",
+                "timestamp": "2025-05-03T14:13:42.460Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_expectedtime": {
+                "value": "2025-05-03T07:00:00.000Z",
+                "formatted": "5/3/2025 1:00 AM",
+                "timestamp": "2025-05-03T14:13:42.460Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_description": {
+                "value": "Fermentation 0HR",
+                "timestamp": "2025-05-03T14:13:42.460Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_type": {
+                "label": "Upstream",
+                "valueString": "566210000",
+                "timestamp": "2025-05-03T14:13:42.460Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_fermentation": {
+                "reference": {
+                    "etn": "cr2b6_fermentation",
+                    "id": {
+                        "guid": "16da302e-8820-f011-9989-7c1e526b30e9"
+                    },
+                    "name": "25-HTS-12-3B"
+                },
+                "timestamp": "2025-05-03T14:13:42.460Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            }
+        }
+    },
+    "_columnAliasNameMap": {},
+    "_primaryFieldName": "cr2b6_id",
+    "_isDirty": false,
+    "_entityReference": {
+        "_etn": "cr2b6_sample",
+        "_id": "ed75c638-c626-f011-8c4d-7c1e526b30e9",
+        "_name": "25-HTS-12-3B-0HR"
+    }
+}

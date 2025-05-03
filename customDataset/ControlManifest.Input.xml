@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest>
-  <control namespace="reactdatasetcontrolNS" constructor="customDataset" version="0.0.5" display-name-key="customDataset" description-key="customDataset description" control-type="virtual" >
+  <control namespace="reactdatasetcontrolNS" constructor="customDataset" version="0.0.6" display-name-key="customDataset" description-key="customDataset description" control-type="virtual" >
     <!--external-service-usage node declares whether this 3rd party PCF control is using external service or not, if yes, this control will be considered as premium and please also add the external domain it is using.
     If it is not using any external service, please set the enabled="false" and DO NOT add any domain below. The "enabled" will be false by default.
     Example1:
@@ -19,13 +19,13 @@
 
     </external-service-usage>
     <!-- dataset node represents a set of entity records on CDS; allow more than one datasets -->
-    <data-set name="sampleDataSet" display-name-key="Dataset_Display_Key">
+    <data-set name="sampleDataSet" display-name-key="Sample Table">
       <!-- 'property-set' node represents a unique, configurable property that each record in the dataset must provide. -->
       <!-- UNCOMMENT TO ADD PROPERTY-SET NODE
       <property-set name="samplePropertySet" display-name-key="Property_Display_Key" description-key="Property_Desc_Key" of-type="SingleLine.Text" usage="bound" required="true" />
       -->
     </data-set>
-    <data-set name="analysisDataset" display-name-key="AnalysisDataset_Display_Key" />
+    <data-set name="analysisDataset" display-name-key="Analyses Table" />
 
     <resources>
       <code path="index.ts" order="1"/>
