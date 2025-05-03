@@ -55,7 +55,7 @@ export class customDataset
     }
 
     // Log the datasets for debugging
-    console.log("Version 0.0.6");
+    console.log("Version 0.0.8");
     console.log("Analysis records:", analysesDataset.records);
     console.log("Sample records:", sampleDataset.records);
 
@@ -67,12 +67,21 @@ export class customDataset
     );
 
     console.log("Valid Sample GUIDs:", validSampleGuids);
+    console.log("analysis dataset:", analysesDataset);
+    console.log("analysis dataset sorted record ids:", analysesDataset);
 
     //Filter analysis records to only include those with valid sample IDs
     const filteredAnalysisRecordIds = analysesDataset.sortedRecordIds.filter(
       (recordId) => {
         const record = analysesDataset.records[recordId];
-        const sampleId = record.getRecordId(); // Get the record ID directly
+        const sampleRef = record.getValue(
+          "cr2b6_sample"
+        ) as ComponentFramework.LookupValue;
+        const sampleId =
+          typeof sampleRef?.id === "object" && sampleRef?.id !== null
+            ? (sampleRef.id as { guid: string }).guid
+            : "Unknown";
+        console.log("Sample ID:", sampleId);
         return sampleId && validSampleGuids.has(sampleId);
       }
     );
@@ -98,7 +107,10 @@ export class customDataset
         "cr2b6_sample"
       ) as ComponentFramework.LookupValue;
       const sampleName = sampleRef?.name ?? "Unknown Sample";
-      const sampleId = record.getRecordId(); // Get the record ID directly
+      const sampleId =
+        typeof sampleRef?.id === "object" && sampleRef?.id !== null
+          ? (sampleRef.id as { guid: string }).guid
+          : "Unknown";
       const methodRef = record.getValue(
         "cr2b6_method"
       ) as ComponentFramework.LookupValue;
@@ -115,14 +127,19 @@ export class customDataset
       //     (record.getValue("cr2b6_sampleid") as string) || "Unknown Method";
 
       const rawValue = record.getValue("cr2b6_value");
-      const analysisId = (record.getValue("cr2b6_id") as string) ?? "";
-      const expectedValue =
-        (record.getValue("cr2b6_expectedvalue") as string) ?? "";
-
       const safeValue =
         rawValue != null && typeof rawValue !== "object"
           ? rawValue.toString()
           : JSON.stringify(rawValue ?? "");
+      const analysisId = (record.getValue("cr2b6_id") as string) ?? "";
+      const expectedValue =
+        (record.getValue("cr2b6_expectedvalue") as string) ?? "";
+
+      const unit =
+        (record.getValue(
+          "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit"
+        ) as string) ?? "";
+      console.log("Unit:", unit);
 
       //create a new sample entry if it doesn't already exist
       if (!sampleMethodMap[sampleId]) {
@@ -137,6 +154,7 @@ export class customDataset
       sampleMethodMap[sampleId].values[method] = {
         analysisId,
         value: safeValue,
+        unit: unit,
         expected: expectedValue,
         required: true,
       };

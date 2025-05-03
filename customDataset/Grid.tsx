@@ -16,6 +16,7 @@ import {
 export interface CellValue {
   analysisId: string;
   value: string;
+  unit: string;
   expected: string;
   required: boolean;
 }
@@ -52,7 +53,22 @@ export const Grid = (props: IHelloWorldProps) => {
         columnId: method,
         renderHeaderCell: () => method,
         renderCell: (item) => {
-          const cell = item[method] as CellValue;
+          const cell = item[method] as CellValue | undefined;
+
+          let displayText = "";
+          let backgroundColor = "transparent";
+
+          if (!cell?.required) {
+            displayText = "N/A";
+            backgroundColor = "#eee"; // gray for not required
+          } else if (!cell.value) {
+            displayText = ""; // no value, highlight yellow
+            backgroundColor = "#ffff99";
+          } else {
+            displayText = `${cell.value} ${cell.unit ?? ""}`;
+            backgroundColor = "transparent"; // normal display
+          }
+
           return (
             <TableCellLayout truncate>
               <Tooltip
@@ -61,11 +77,13 @@ export const Grid = (props: IHelloWorldProps) => {
               >
                 <div
                   style={{
-                    backgroundColor: cell?.required ? "transparent" : "#eee",
+                    backgroundColor,
                     textAlign: "center",
+                    padding: "4px 8px",
+                    borderRadius: 4,
                   }}
                 >
-                  {cell?.value ?? ""}
+                  {displayText}
                 </div>
               </Tooltip>
             </TableCellLayout>

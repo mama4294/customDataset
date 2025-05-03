@@ -1,0 +1,290 @@
+//------Samlple Record-----
+
+{
+    "_record": {
+        "initialized": 2,
+        "identifier": {
+            "etn": "cr2b6_sample",
+            "id": {
+                "guid": "f375c638-c626-f011-8c4d-7c1e526b30e9"
+            }
+        },
+        "fields": {
+            "cr2b6_id": {
+                "value": "25-HTS-12-3B-12HR",
+                "timestamp": "2025-05-03T14:52:39.700Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_expectedtime": {
+                "value": "2025-05-03T19:00:00.000Z",
+                "formatted": "5/3/2025 1:00 PM",
+                "timestamp": "2025-05-03T14:52:39.700Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_description": {
+                "value": "Fermentation 12HR",
+                "timestamp": "2025-05-03T14:52:39.700Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_type": {
+                "label": "Upstream",
+                "valueString": "566210000",
+                "timestamp": "2025-05-03T14:52:39.700Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_fermentation": {
+                "reference": {
+                    "etn": "cr2b6_fermentation",
+                    "id": {
+                        "guid": "16da302e-8820-f011-9989-7c1e526b30e9"
+                    },
+                    "name": "25-HTS-12-3B"
+                },
+                "timestamp": "2025-05-03T14:52:39.700Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            }
+        }
+    },
+    "_columnAliasNameMap": {},
+    "_primaryFieldName": "cr2b6_id",
+    "_isDirty": false,
+    "_entityReference": {
+        "_etn": "cr2b6_sample",
+        "_id": "f375c638-c626-f011-8c4d-7c1e526b30e9",
+        "_name": "25-HTS-12-3B-12HR"
+    }
+}
+
+// ------Analysis Record------
+{
+    "_record": {
+        "initialized": 2,
+        "identifier": {
+            "etn": "cr2b6_analysis",
+            "id": {
+                "guid": "fc75c638-c626-f011-8c4d-7c1e526b30e9"
+            }
+        },
+        "fields": {
+            "cr2b6_sample": {
+                "reference": {
+                    "etn": "cr2b6_sample",
+                    "id": {
+                        "guid": "f375c638-c626-f011-8c4d-7c1e526b30e9"
+                    },
+                    "name": "25-HTS-12-3B-12HR"
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_expectedvalue": {
+                "value": "150 mS/cm",
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_method": {
+                "reference": {
+                    "etn": "cr2b6_analyticalmethod",
+                    "id": {
+                        "guid": "83bb7f63-162d-414f-8be3-38c5088fd51b"
+                    },
+                    "name": "Conductivity"
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit": {
+                "attributeLogicalName": "cr2b6_unit",
+                "entityLogicalName": "cr2b6_analyticalmethod",
+                "innerValue": {
+                    "value": "mS/cm",
+                    "timestamp": "2025-05-03T14:52:39.775Z",
+                    "validationResult": {
+                        "errorId": null,
+                        "errorMessage": null,
+                        "isValueValid": true,
+                        "userInput": null,
+                        "isOfflineSyncError": false
+                    }
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                },
+                "innerType": "string"
+            },
+            "cr2b6_id": {
+                "value": "1051",
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            }
+        }
+    },
+    "_columnAliasNameMap": {},
+    "_primaryFieldName": "cr2b6_id",
+    "_isDirty": false,
+    "_entityReference": {
+        "_etn": "cr2b6_analysis",
+        "_id": "fc75c638-c626-f011-8c4d-7c1e526b30e9",
+        "_name": "1051"
+    }
+}
+{
+    "_record": {
+        "initialized": 2,
+        "identifier": {
+            "etn": "cr2b6_analysis",
+            "id": {
+                "guid": "5391888c-2025-f011-8c4d-7c1e526b30e9"
+            }
+        },
+        "fields": {
+            "cr2b6_sample": {
+                "reference": {
+                    "etn": "cr2b6_sample",
+                    "id": {
+                        "guid": "4d91888c-2025-f011-8c4d-7c1e526b30e9"
+                    },
+                    "name": "25-HTS-12-3A-0HR"
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_expectedvalue": {
+                "value": "5pH",
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "cr2b6_method": {
+                "reference": {
+                    "etn": "cr2b6_analyticalmethod",
+                    "id": {
+                        "guid": "325674fe-3769-4831-a7a9-78ff9b71d927"
+                    },
+                    "name": "pH"
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            },
+            "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit": {
+                "attributeLogicalName": "cr2b6_unit",
+                "entityLogicalName": "cr2b6_analyticalmethod",
+                "innerValue": {
+                    "value": "pH",
+                    "timestamp": "2025-05-03T14:52:39.775Z",
+                    "validationResult": {
+                        "errorId": null,
+                        "errorMessage": null,
+                        "isValueValid": true,
+                        "userInput": null,
+                        "isOfflineSyncError": false
+                    }
+                },
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                },
+                "innerType": "string"
+            },
+            "cr2b6_id": {
+                "value": "1036",
+                "timestamp": "2025-05-03T14:52:39.775Z",
+                "validationResult": {
+                    "errorId": null,
+                    "errorMessage": null,
+                    "isValueValid": true,
+                    "userInput": null,
+                    "isOfflineSyncError": false
+                }
+            }
+        }
+    },
+    "_columnAliasNameMap": {},
+    "_primaryFieldName": "cr2b6_id",
+    "_isDirty": false,
+    "_entityReference": {
+        "_etn": "cr2b6_analysis",
+        "_id": "5391888c-2025-f011-8c4d-7c1e526b30e9",
+        "_name": "1036"
+    }
+}
