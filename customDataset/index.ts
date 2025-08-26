@@ -4,6 +4,7 @@ import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import * as React from "react";
 import { CellValue, Row } from "./Grid";
 import DataSetInterfaces = ComponentFramework.PropertyHelper.DataSetApi;
+import Loading from "./Loading";
 type DataSet = ComponentFramework.PropertyTypes.DataSet;
 
 export class customDataset
@@ -51,40 +52,84 @@ export class customDataset
 
     // Check if datasets are available and have records
     if (!analysesDataset?.sortedRecordIds || !sampleDataset?.sortedRecordIds) {
-      return React.createElement("div", null, "Loading...");
+      React.createElement(Loading);
     }
 
     // Log the datasets for debugging
-    console.log("Version 0.0.8");
+    console.log("Version 0.0.9");
     console.log("Analysis records:", analysesDataset.records);
     console.log("Sample records:", sampleDataset.records);
 
+    console.log("=== Sample Record IDs ===");
+    sampleDataset.sortedRecordIds.forEach((recordId) => {
+      console.log(recordId);
+    });
+
     //get a list of sample IDs from the sample dataset
     const validSampleGuids = new Set(
-      sampleDataset.sortedRecordIds.map((id) =>
-        sampleDataset.records[id].getRecordId()
-      )
+      sampleDataset.sortedRecordIds.map((id) => {
+        return (
+          console.log(
+            `ID: ${id}, recordID: ${sampleDataset.records[id].getRecordId()}
+            `
+          ),
+          sampleDataset.records[id].getRecordId()
+        );
+      })
     );
 
     console.log("Valid Sample GUIDs:", validSampleGuids);
     console.log("analysis dataset:", analysesDataset);
     console.log("analysis dataset sorted record ids:", analysesDataset);
 
-    //Filter analysis records to only include those with valid sample IDs
+    // Filter analysis records to only include those with valid sample IDs
+    console.log("=== Debugging Analysis Dataset ===");
+    console.log("Total RecordIds:", analysesDataset?.sortedRecordIds?.length);
+    console.log("Valid Sample GUIDs:", Array.from(validSampleGuids));
+
     const filteredAnalysisRecordIds = analysesDataset.sortedRecordIds.filter(
-      (recordId) => {
+      (recordId, index) => {
         const record = analysesDataset.records[recordId];
+        if (!record) {
+          console.warn(
+            `Record not found for recordId: ${recordId} (index: ${index})`
+          );
+          return false;
+        }
+
         const sampleRef = record.getValue(
           "cr2b6_sample"
         ) as ComponentFramework.LookupValue;
-        const sampleId =
-          typeof sampleRef?.id === "object" && sampleRef?.id !== null
-            ? (sampleRef.id as { guid: string }).guid
-            : "Unknown";
-        console.log("Sample ID:", sampleId);
-        return sampleId && validSampleGuids.has(sampleId);
+
+        if (!sampleRef) {
+          console.warn(`No 'cr2b6_sample' found for recordId: ${recordId}`);
+          return false;
+        }
+
+        console.log(
+          `Record[${index}] DataverseId: ${recordId}, sampleRef:`,
+          sampleRef
+        );
+
+        // Handle weird type issues with the ID
+        let sampleId: string = "Unknown";
+        if (typeof sampleRef.id === "string") {
+          sampleId = sampleRef.id;
+        } else if (typeof sampleRef.id === "object" && sampleRef.id !== null) {
+          const guidObj = sampleRef.id as { guid?: string };
+          sampleId = guidObj.guid ?? "Unknown";
+        }
+
+        console.log(`Sample ID extracted: ${sampleId}`);
+
+        const isValid =
+          sampleId !== "Unknown" && validSampleGuids.has(sampleId);
+        console.log(`Is sampleId in validSampleGuids?`, isValid);
+
+        return isValid;
       }
     );
+
     console.log("Filtered Analysis Records:", filteredAnalysisRecordIds);
 
     // Create a map to store sample(name and id) and analysis values (method, value, expected, required)
@@ -126,11 +171,7 @@ export class customDataset
       //   const sampleId =
       //     (record.getValue("cr2b6_sampleid") as string) || "Unknown Method";
 
-      const rawValue = record.getValue("cr2b6_value");
-      const safeValue =
-        rawValue != null && typeof rawValue !== "object"
-          ? rawValue.toString()
-          : JSON.stringify(rawValue ?? "");
+      const value = (record.getValue("cr2b6_value") as string) ?? null;
       const analysisId = (record.getValue("cr2b6_id") as string) ?? "";
       const expectedValue =
         (record.getValue("cr2b6_expectedvalue") as string) ?? "";
@@ -153,7 +194,7 @@ export class customDataset
       // Add the analysis data to the sample entry
       sampleMethodMap[sampleId].values[method] = {
         analysisId,
-        value: safeValue,
+        value: value,
         unit: unit,
         expected: expectedValue,
         required: true,
