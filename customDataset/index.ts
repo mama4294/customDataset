@@ -7,7 +7,16 @@ import DataSetInterfaces = ComponentFramework.PropertyHelper.DataSetApi;
 import Loading from "./Loading";
 type DataSet = ComponentFramework.PropertyTypes.DataSet;
 
-export class customDataset
+//https://www.youtube.com/watch?v=897DPWMJQ20&t=8461s
+//Video on how to build PCF with React
+//CD Solution
+//pac solution init --publisher-name mmalone --publisher-prefix mmalone
+// pac solution add-reference --path /Users/matthewmalone/Documents/Builds/PowerApps/customDataset
+//CD customDataset
+//pac pcf push --publisher-prefix mmalone
+//npm run start (to run with local web server)
+
+export class samplesPivotTable
   implements ComponentFramework.ReactControl<IInputs, IOutputs>
 {
   private notifyOutputChanged: () => void;
@@ -86,6 +95,10 @@ export class customDataset
     console.log("=== Debugging Analysis Dataset ===");
     console.log("Total RecordIds:", analysesDataset?.sortedRecordIds?.length);
     console.log("Valid Sample GUIDs:", Array.from(validSampleGuids));
+    console.log(
+      "Available columns:",
+      analysesDataset.columns.map((c) => c.name)
+    );
 
     const filteredAnalysisRecordIds = analysesDataset.sortedRecordIds.filter(
       (recordId, index) => {
@@ -112,7 +125,7 @@ export class customDataset
         );
 
         // Handle weird type issues with the ID
-        let sampleId: string = "Unknown";
+        let sampleId = "Unknown";
         if (typeof sampleRef.id === "string") {
           sampleId = sampleRef.id;
         } else if (typeof sampleRef.id === "object" && sampleRef.id !== null) {
