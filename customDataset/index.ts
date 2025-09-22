@@ -137,6 +137,8 @@ export class samplesPivotTable
       }
       return undefined;
     };
+    const toStringSafe = (v: any): string | undefined =>
+      typeof v === "string" ? v : typeof v === "number" ? String(v) : undefined;
 
     // Log the datasets for debugging
     const version = "0.0.20";
@@ -220,13 +222,20 @@ export class samplesPivotTable
     console.log("analysis dataset:", analysesDataset);
     if (analysesDataset.sortedRecordIds.length > 0) {
       const firstAnalysisRecordId = analysesDataset.sortedRecordIds[0];
-      const firstAnalysisRecord = analysesDataset.records[firstAnalysisRecordId];
+      const firstAnalysisRecord =
+        analysesDataset.records[firstAnalysisRecordId];
       console.log("First Analysis", firstAnalysisRecord);
       console.log("First Analysis Record Values:");
       analysesDataset.columns.forEach((col) => {
         const val = firstAnalysisRecord.getValue(col.name);
         const formattedVal = firstAnalysisRecord.getFormattedValue(col.name);
-        console.log(`  ${col.name} (${col.displayName}):`, val, "(formatted:", formattedVal, ")");
+        console.log(
+          `  ${col.name} (${col.displayName}):`,
+          val,
+          "(formatted:",
+          formattedVal,
+          ")"
+        );
       });
     }
     console.log(
@@ -258,20 +267,20 @@ export class samplesPivotTable
       (recordId, index) => {
         const record = analysesDataset.records[recordId];
         if (!record) return false;
-        
+
         let sampleName: string | undefined;
         let matchedSampleId: string | undefined;
-        
+
         // Method 1: Try direct sample name from CSV development data (Sample column or cr2b6_samplename)
-        const directSampleName = getFirstValue(record, analysesDataset, [
+        const directSampleNameAny = getFirstValue(record, analysesDataset, [
           "Sample", // CSV dev data has Sample column with direct names
           "cr2b6_samplename",
           "sampleName",
-        ]) as string | undefined;
-        
-        if (directSampleName && directSampleName.trim()) {
-          sampleName = directSampleName.trim();
-          
+        ]);
+        const directSampleName = toStringSafe(directSampleNameAny)?.trim();
+        if (directSampleName) {
+          sampleName = directSampleName;
+
           // For development mode, the sample name IS the identifier
           // Try to map to a sample ID if we have the mapping
           if (hasSampleNameMap && sampleNameToId.has(sampleName)) {
@@ -283,94 +292,113 @@ export class samplesPivotTable
         }
         // Method 2: Try sample ID reference from CSV development data (cr2b6_sampleid)
         else if (!sampleName) {
-          const sampleIdRaw = getFirstValue(record, analysesDataset, [
-            "cr2b6_sampleid",
-            "sampleId",
-          ]) as string | undefined;
-          
+          const sampleIdRaw = toStringSafe(
+            getFirstValue(record, analysesDataset, [
+              "cr2b6_sampleid",
+              "sampleId",
+            ])
+          );
+
           if (sampleIdRaw) {
             // Look up sample name by ID in the sample dataset
-            const sampleRecord = Object.values(sampleDataset.records).find(sample => {
-              const id = getFirstValue(sample, sampleDataset, ["sampleId", "ID"]);
-              return id && id.toString() === sampleIdRaw;
-            });
-            
+            const sampleRecord = Object.values(sampleDataset.records).find(
+              (sample) => {
+                const id = toStringSafe(
+                  getFirstValue(sample, sampleDataset, ["sampleId", "ID"])
+                );
+                return id && id === sampleIdRaw;
+              }
+            );
+
             if (sampleRecord) {
-              const foundSampleName = getFirstValue(sampleRecord, sampleDataset, [
-                "sampleName",
-                "ID", // CSV sample data has ID column with names
-                "cr2b6_id",
-                "Name",
-              ]) as string | undefined;
-              sampleName = typeof foundSampleName === "string" ? foundSampleName.trim() : undefined;
+              const foundSampleName = toStringSafe(
+                getFirstValue(sampleRecord, sampleDataset, [
+                  "sampleName",
+                  "ID", // CSV sample data has ID column with names
+                  "cr2b6_id",
+                  "Name",
+                ])
+              );
+              sampleName = foundSampleName?.trim();
               matchedSampleId = sampleIdRaw;
             }
           }
         }
-        
+
         // Method 3: Try GUID reference from production DataVerse data (cr2b6_sample)
         if (!sampleName) {
           // First try direct lookup value access
-          const sampleLookup = record.getValue("cr2b6_sample") as ComponentFramework.LookupValue;
+          const sampleLookup = record.getValue(
+            "cr2b6_sample"
+          ) as ComponentFramework.LookupValue;
           let sampleGuidRaw: string | undefined;
-          
+
           if (sampleLookup && sampleLookup.id) {
             // Extract GUID from lookup
-            sampleGuidRaw = typeof sampleLookup.id === "object" && sampleLookup.id !== null
-              ? (sampleLookup.id as { guid: string }).guid
-              : typeof sampleLookup.id === "string"
-              ? sampleLookup.id
-              : undefined;
+            sampleGuidRaw =
+              typeof sampleLookup.id === "object" && sampleLookup.id !== null
+                ? (sampleLookup.id as { guid: string }).guid
+                : typeof sampleLookup.id === "string"
+                ? sampleLookup.id
+                : undefined;
           }
-          
+
           // Fallback to string-based field access
           if (!sampleGuidRaw) {
             sampleGuidRaw = getFirstValue(record, analysesDataset, [
               "cr2b6_sample",
             ]) as string | undefined;
           }
-          
+
           if (index < 3) {
             console.log(`Record[${index}] Lookup debug:`, {
               sampleLookup,
               sampleGuidRaw,
               lookupId: sampleLookup?.id,
-              lookupName: sampleLookup?.name
+              lookupName: sampleLookup?.name,
             });
           }
-          
+
           let sampleGuid: string | undefined = sampleGuidRaw;
           if (sampleGuidRaw) {
             // Handle both direct GUID strings and formatted values like "Sample Name (GUID)"
-            if (typeof sampleGuidRaw === 'string' && sampleGuidRaw.includes('(') && sampleGuidRaw.includes(')')) {
+            if (
+              typeof sampleGuidRaw === "string" &&
+              sampleGuidRaw.includes("(") &&
+              sampleGuidRaw.includes(")")
+            ) {
               const match = sampleGuidRaw.match(/\(([^)]+)\)$/);
               sampleGuid = match ? match[1] : sampleGuidRaw;
             }
           }
-          
+
           // Try to find the sample name using the GUID
           if (sampleGuid && validSampleGuids.has(sampleGuid)) {
             const sampleRecord = sampleDataset.records[sampleGuid];
             if (sampleRecord) {
-              const sampleNameFromRecord = getFirstValue(sampleRecord, sampleDataset, [
-                "cr2b6_id",
-                "ID",
-                "Name",
-              ]) as string | undefined;
-              sampleName = typeof sampleNameFromRecord === "string" ? sampleNameFromRecord.trim() : undefined;
+              const sampleNameFromRecord = getFirstValue(
+                sampleRecord,
+                sampleDataset,
+                ["cr2b6_id", "ID", "Name"]
+              ) as string | undefined;
+              sampleName =
+                typeof sampleNameFromRecord === "string"
+                  ? sampleNameFromRecord.trim()
+                  : undefined;
               matchedSampleId = sampleGuid;
             }
           }
         }
-        
+
         const matched = hasSampleNameMap
           ? !!(sampleName && sampleNameToId.has(sampleName))
           : !!sampleName; // fallback: accept any record with a sample name
-          
+
         // In production, if we have no sample linkage, let's be more permissive
         // and include all analysis records, then try to match in processing
-        const fallbackMatched = !hasSampleNameMap || sampleNameToId.size === 0 ? true : matched;
-        
+        const fallbackMatched =
+          !hasSampleNameMap || sampleNameToId.size === 0 ? true : matched;
+
         if (index < 3) {
           console.log(
             `Record[${index}] sampleName=${sampleName} matchedSampleId=${matchedSampleId} matched=${matched} fallbackMatched=${fallbackMatched}`
@@ -425,15 +453,15 @@ export class samplesPivotTable
         console.log(`Production lookup found: ${sampleName} (${sampleId})`);
       } else {
         // Method 2: Try CSV Development data - Direct sample name (Sample column is primary for CSV)
-        const directSampleName = getFirstValue(record, analysesDataset, [
+        const directSampleNameAny2 = getFirstValue(record, analysesDataset, [
           "Sample", // CSV dev data has Sample column with direct names
           "cr2b6_samplename",
           "sampleName",
           "Name",
-        ]) as string | undefined;
-        
-        if (directSampleName && directSampleName.trim()) {
-          sampleName = directSampleName.trim();
+        ]);
+        const directSampleName2 = toStringSafe(directSampleNameAny2)?.trim();
+        if (directSampleName2) {
+          sampleName = directSampleName2;
           // For CSV data, try to map name to ID using sampleNameToId
           if (hasSampleNameMap && sampleNameToId.has(sampleName)) {
             sampleId = sampleNameToId.get(sampleName)!;
@@ -448,26 +476,33 @@ export class samplesPivotTable
             "cr2b6_id",
             "ID",
           ]) as string | undefined;
-          
-          const notes = getFirstValue(record, analysesDataset, [
-            "cr2b6_notes",
-            "Notes",
-          ]) as string | undefined;
-          
+
+          const notes = toStringSafe(
+            getFirstValue(record, analysesDataset, ["cr2b6_notes", "Notes"])
+          );
+
           // Try to match sample names from the available samples against analysis notes or ID
           if (hasSampleNameMap && sampleNameToId.size > 0) {
-            for (const [availableSampleName, availableSampleId] of sampleNameToId.entries()) {
+            for (const [
+              availableSampleName,
+              availableSampleId,
+            ] of sampleNameToId.entries()) {
               // Check if the sample name appears in notes or analysis ID
-              if ((notes && notes.includes(availableSampleName)) || 
-                  (analysisId && analysisId.includes(availableSampleName))) {
+              const analysisIdStr = toStringSafe(analysisId);
+              if (
+                (notes && notes.includes(availableSampleName)) ||
+                (analysisIdStr && analysisIdStr.includes(availableSampleName))
+              ) {
                 sampleName = availableSampleName;
                 sampleId = availableSampleId;
-                console.log(`Matched sample by pattern: ${sampleName} found in notes or ID`);
+                console.log(
+                  `Matched sample by pattern: ${sampleName} found in notes or ID`
+                );
                 break;
               }
             }
           }
-          
+
           // Last resort: If we still don't have a sample name, use a generic one
           if (!sampleName) {
             sampleName = "Unknown Sample";
