@@ -218,6 +218,17 @@ export class samplesPivotTable
       Array.from(sampleNameToId.entries())
     );
     console.log("analysis dataset:", analysesDataset);
+    if (analysesDataset.sortedRecordIds.length > 0) {
+      const firstAnalysisRecordId = analysesDataset.sortedRecordIds[0];
+      const firstAnalysisRecord = analysesDataset.records[firstAnalysisRecordId];
+      console.log("First Analysis", firstAnalysisRecord);
+      console.log("First Analysis Record Values:");
+      analysesDataset.columns.forEach((col) => {
+        const val = firstAnalysisRecord.getValue(col.name);
+        const formattedVal = firstAnalysisRecord.getFormattedValue(col.name);
+        console.log(`  ${col.name} (${col.displayName}):`, val, "(formatted:", formattedVal, ")");
+      });
+    }
     console.log(
       "analysis dataset sorted record ids:",
       analysesDataset.sortedRecordIds.length
