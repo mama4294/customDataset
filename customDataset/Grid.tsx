@@ -42,53 +42,83 @@ const useStyles = makeStyles({
   table: {
     minWidth: "1000px",
     width: "max-content",
-    borderCollapse: "separate",
-    borderSpacing: 0,
-    fontFamily: "'Segoe UI', sans-serif",
-    fontSize: "14px",
-    color: "#323130",
+    fontSize: "12px",
   },
-  th: {
+  headerCell: {
+    position: "sticky",
+    top: 0,
+    zIndex: 3,
     backgroundColor: "#f3f2f1",
-    padding: "10px 12px",
     borderBottom: "1px solid #edebe9",
     textAlign: "center",
     fontWeight: 600,
-    position: "sticky",
-    top: 0,
-    zIndex: 1,
-    lineHeight: "48px", // Match the td height
-    minHeight: "48px",
-  },
-  td: {
-    textAlign: "center",
-    padding: "16px 12px",
-    borderBottom: "1px solid #edebe9",
-    backgroundColor: "#ffffff",
-    verticalAlign: "top",
-    cursor: "pointer",
-    lineHeight: "48px", // Ensures taller rows
-    minHeight: "48px", // Optional fallback
-  },
-  stickyRow: {
-    position: "sticky",
-    left: 0,
-    backgroundColor: "#ffffff",
-    zIndex: 1,
-    boxShadow: "2px 0 4px -2px rgba(0, 0, 0, 0.1)",
+    height: "36px",
+    padding: 0,
   },
   stickyColumn: {
     position: "sticky",
     left: 0,
     backgroundColor: "#ffffff",
     zIndex: 2,
-    boxShadow: "2px 0 4px -2px rgba(0, 0, 0, 0.1)", // subtle shadow on sticky column
+    boxShadow: "2px 0 4px -2px rgba(0, 0, 0, 0.1)",
   },
-  rowCell: {
+  cell: {
+    textAlign: "center",
+    verticalAlign: "middle",
+    height: "36px",
+    borderBottom: "1px solid #edebe9",
+    padding: 0,
+  },
+  cellInner: {
+    padding: "0 8px",
+    width: "100%",
+    textAlign: "center",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  rowHover: {
     ":hover": {
-      backgroundColor: "#f9f9f9",
-      borderBottom: "1px solidrgb(43, 163, 255)",
+      backgroundColor: "#fafafa",
     },
+  },
+  rowEven: {
+    backgroundColor: "#fcfcfc",
+  },
+  headerInnerLeft: {
+    padding: "0 8px",
+    width: "100%",
+    textAlign: "left",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    position: "relative",
+  },
+  headerInnerCenter: {
+    padding: "0 8px",
+    width: "100%",
+    textAlign: "center",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    position: "relative",
+  },
+  resizer: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "6px",
+    height: "100%",
+    cursor: "col-resize",
+    userSelect: "none",
+  },
+  leftAlignedCellInner: {
+    padding: "0 8px",
+    width: "100%",
+    textAlign: "left",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
   noSamples: {
     padding: "20px",
@@ -111,36 +141,125 @@ const useStyles = makeStyles({
 export const Grid = (props: IHelloWorldProps) => {
   const classes = useStyles();
 
+  // Column sizing state (sample column + method columns)
+  const SAMPLE_COL = "__sample__";
+  const [colWidths, setColWidths] = React.useState<Record<string, number>>({
+    [SAMPLE_COL]: 220,
+  });
+
+  // Ensure widths for any new methods without clobbering existing sizes
+  React.useEffect(() => {
+    setColWidths((w) => {
+      const next = { ...w };
+      if (next[SAMPLE_COL] == null) next[SAMPLE_COL] = 220;
+      for (const m of props.methods) {
+        if (next[m] == null) next[m] = 140;
+      }
+      return next;
+    });
+  }, [props.methods]);
+
+  // Resizing logic
+  const resizingRef = React.useRef<{
+    key: string | null;
+    startX: number;
+    startWidth: number;
+  }>({ key: null, startX: 0, startWidth: 0 });
+
+  const onMouseDownResize = (e: React.MouseEvent, key: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startWidth = colWidths[key] ?? 120;
+    resizingRef.current = { key, startX, startWidth };
+
+    const onMove = (ev: MouseEvent) => {
+      const dx = ev.clientX - resizingRef.current.startX;
+      const newWidth = Math.max(
+        80,
+        Math.min(600, resizingRef.current.startWidth + dx)
+      );
+      const k = resizingRef.current.key;
+      if (!k) return;
+      setColWidths((w) => (w[k] === newWidth ? w : { ...w, [k]: newWidth }));
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      resizingRef.current = { key: null, startX: 0, startWidth: 0 };
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
+
   if (props.data.length === 0) {
     return <div className={classes.noSamples}>No samples</div>;
   }
 
   return (
     <div className={classes.scrollContainer}>
-      <table className={classes.table}>
-        <thead>
-          <tr>
-            <th className={`${classes.th} ${classes.stickyColumn}`}>
-              Sample ID
-            </th>
+      <Table className={classes.table}>
+        <TableHeader>
+          <TableRow>
+            <TableHeaderCell
+              className={`${classes.headerCell} ${classes.stickyColumn}`}
+              style={{
+                width: colWidths[SAMPLE_COL],
+                minWidth: colWidths[SAMPLE_COL],
+              }}
+            >
+              <div className={classes.headerInnerLeft}>
+                Sample ID
+                <div
+                  className={classes.resizer}
+                  onMouseDown={(e) => onMouseDownResize(e, SAMPLE_COL)}
+                />
+              </div>
+            </TableHeaderCell>
             {props.methods.map((method) => (
-              <th className={classes.th} key={method}>
-                {method}
-              </th>
+              <TableHeaderCell
+                className={classes.headerCell}
+                key={method}
+                style={{
+                  width: colWidths[method],
+                  minWidth: colWidths[method],
+                }}
+              >
+                <div className={classes.headerInnerCenter}>
+                  {method}
+                  <div
+                    className={classes.resizer}
+                    onMouseDown={(e) => onMouseDownResize(e, method)}
+                  />
+                </div>
+              </TableHeaderCell>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {props.data.map((row) => (
-            <tr key={row.sampleId}>
-              <td className={`${classes.td} ${classes.stickyColumn}`}>
-                <Link
-                  href={`https://org8ef10ef2.crm.dynamics.com/main.aspx?appid=4a63b923-360f-f011-9989-7c1e526b30e9&pagetype=entityrecord&etn=cr2b6_sample&id=${row.sampleGuid}`}
-                  target="_blank"
-                >
-                  {row.sampleName}
-                </Link>
-              </td>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {props.data.map((row, idx) => (
+            <TableRow
+              key={row.sampleId}
+              className={`${classes.rowHover} ${
+                idx % 2 === 0 ? classes.rowEven : ""
+              }`}
+            >
+              <TableCell
+                className={`${classes.cell} ${classes.stickyColumn}`}
+                style={{
+                  width: colWidths[SAMPLE_COL],
+                  minWidth: colWidths[SAMPLE_COL],
+                }}
+              >
+                <div className={classes.leftAlignedCellInner}>
+                  <Link
+                    href={`https://org8ef10ef2.crm.dynamics.com/main.aspx?appid=4a63b923-360f-f011-9989-7c1e526b30e9&pagetype=entityrecord&etn=cr2b6_sample&id=${row.sampleGuid}`}
+                    target="_blank"
+                  >
+                    {row.sampleName}
+                  </Link>
+                </div>
+              </TableCell>
               {props.methods.map((method) => {
                 const cell = row[method] as CellValue | undefined;
 
@@ -160,25 +279,29 @@ export const Grid = (props: IHelloWorldProps) => {
                 }
 
                 return (
-                  <Tooltip
-                    withArrow
-                    content={expectedText}
-                    relationship="description"
+                  <TableCell
                     key={method}
+                    className={classes.cell}
+                    style={{
+                      backgroundColor,
+                      width: colWidths[method],
+                      minWidth: colWidths[method],
+                    }}
                   >
-                    <td
-                      className={`${classes.td} ${classes.rowCell}`}
-                      style={{ backgroundColor }}
+                    <Tooltip
+                      withArrow
+                      content={expectedText}
+                      relationship="description"
                     >
-                      {displayText}
-                    </td>
-                  </Tooltip>
+                      <div className={classes.cellInner}>{displayText}</div>
+                    </Tooltip>
+                  </TableCell>
                 );
               })}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };
