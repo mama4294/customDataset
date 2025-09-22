@@ -111,7 +111,7 @@ const useStyles = makeStyles({
 export const Grid = (props: IHelloWorldProps) => {
   const classes = useStyles();
 
-  if (props.methods.length <= 1) {
+  if (props.data.length === 0) {
     return <div className={classes.noSamples}>No samples</div>;
   }
 

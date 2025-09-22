@@ -60,38 +60,180 @@ export class samplesPivotTable
     const sampleDataset = context.parameters.sampleDataSet;
 
     // Check if datasets are available and have records
-    if (!analysesDataset?.sortedRecordIds || !sampleDataset?.sortedRecordIds) {
-      React.createElement(Loading);
+    console.log("=== Initial Dataset Check ===");
+    console.log("analysesDataset exists:", !!analysesDataset);
+    console.log("sampleDataset exists:", !!sampleDataset);
+    console.log(
+      "analysesDataset.sortedRecordIds exists:",
+      !!analysesDataset?.sortedRecordIds
+    );
+    console.log(
+      "sampleDataset.sortedRecordIds exists:",
+      !!sampleDataset?.sortedRecordIds
+    );
+    console.log(
+      "analysesDataset.sortedRecordIds length:",
+      analysesDataset?.sortedRecordIds?.length || 0
+    );
+    console.log(
+      "sampleDataset.sortedRecordIds length:",
+      sampleDataset?.sortedRecordIds?.length || 0
+    );
+
+    if (
+      !analysesDataset?.sortedRecordIds ||
+      !sampleDataset?.sortedRecordIds ||
+      analysesDataset.sortedRecordIds.length === 0 ||
+      sampleDataset.sortedRecordIds.length === 0
+    ) {
+      console.log("Returning Loading component - datasets not ready");
+      return React.createElement(
+        FluentProvider,
+        { theme: webLightTheme },
+        React.createElement(Loading)
+      );
     }
 
+    // Helper utilities to resolve values by display/internal names
+    const isFilled = (v: any) => v !== undefined && v !== null && v !== "";
+    const stripParens = (s: string | undefined) =>
+      (s ?? "")
+        .replace(/\s*\([^)]*\)\s*/g, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    const getFieldValue = (
+      record: DataSetInterfaces.EntityRecord,
+      dataset: DataSet,
+      label: string
+    ): any => {
+      // Try with provided label first
+      let v = record.getValue(label);
+      if (!isFilled(v)) v = record.getFormattedValue(label);
+      if (isFilled(v)) return v;
+
+      // Try matching a column by name or displayName, ignoring parenthetical parts
+      const normalized = stripParens(label);
+      const col = dataset.columns.find(
+        (c) =>
+          c.displayName === label ||
+          c.name === label ||
+          stripParens(c.displayName) === normalized ||
+          stripParens(c.name) === normalized
+      );
+      if (col) {
+        v = record.getValue(col.name);
+        if (!isFilled(v)) v = record.getFormattedValue(col.name);
+      }
+      return isFilled(v) ? v : undefined;
+    };
+    const getFirstValue = (
+      record: DataSetInterfaces.EntityRecord,
+      dataset: DataSet,
+      labels: string[]
+    ): any => {
+      for (const lbl of labels) {
+        const v = getFieldValue(record, dataset, lbl);
+        if (isFilled(v)) return v;
+      }
+      return undefined;
+    };
+
     // Log the datasets for debugging
-    console.log("Version 0.0.9");
+    console.log(
+      "Version 0.0.19 - Prefer Sample Name as ID; fallback when absent"
+    );
+    console.log("Analysis dataset available:", !!analysesDataset);
+    console.log("Sample dataset available:", !!sampleDataset);
+    console.log(
+      "Analysis records count:",
+      analysesDataset?.sortedRecordIds?.length || 0
+    );
+    console.log(
+      "Sample records count:",
+      sampleDataset?.sortedRecordIds?.length || 0
+    );
     console.log("Analysis records:", analysesDataset.records);
     console.log("Sample records:", sampleDataset.records);
 
+    console.log("=== Sample Dataset Details ===");
+    console.log(
+      "Sample columns:",
+      sampleDataset.columns.map((c) => `${c.name} (${c.displayName})`)
+    );
     console.log("=== Sample Record IDs ===");
     sampleDataset.sortedRecordIds.forEach((recordId) => {
-      console.log(recordId);
+      const record = sampleDataset.records[recordId];
+      const name = getFirstValue(record, sampleDataset, [
+        "Name",
+        "ID",
+        "cr2b6_name",
+        "Sample",
+        "name",
+      ]);
+      console.log(
+        `Sample ID: ${recordId}, Name: ${name}, GUID: ${record.getRecordId()}`
+      );
     });
 
     //get a list of sample IDs from the sample dataset
     const validSampleGuids = new Set(
       sampleDataset.sortedRecordIds.map((id) => {
-        return (
-          console.log(
-            `ID: ${id}, recordID: ${sampleDataset.records[id].getRecordId()}
-            `
-          ),
-          sampleDataset.records[id].getRecordId()
-        );
+        const record = sampleDataset.records[id];
+        const recordId = record.getRecordId();
+        console.log(`Sample Record - ID: ${id}, RecordId: ${recordId}`);
+        // In test mode, use the dataset ID instead of GUID
+        return recordId === id ? id : recordId;
       })
     );
 
-    console.log("Valid Sample GUIDs:", validSampleGuids);
-    console.log("analysis dataset:", analysesDataset);
-    console.log("analysis dataset sorted record ids:", analysesDataset);
+    // Also create a map of sample names to IDs for easier lookup
+    const sampleNameToId = new Map<string, string>(
+      sampleDataset.sortedRecordIds
+        .map((id) => {
+          const record = sampleDataset.records[id];
+          const recordId = record.getRecordId();
+          const actualId = recordId === id ? id : recordId;
+          const sampleNameRaw = getFirstValue(record, sampleDataset, [
+            "Name",
+            "ID",
+            "cr2b6_name",
+            "Sample",
+            "name",
+          ]) as string | undefined;
+          const sampleName =
+            typeof sampleNameRaw === "string"
+              ? sampleNameRaw.trim()
+              : undefined;
+          return sampleName
+            ? ([sampleName, actualId] as [string, string])
+            : null;
+        })
+        .filter((entry): entry is [string, string] => entry !== null)
+    );
 
-    // Filter analysis records to only include those with valid sample IDs
+    console.log("Valid Sample GUIDs:", Array.from(validSampleGuids));
+    console.log(
+      "Sample Name to ID map (entries):",
+      Array.from(sampleNameToId.entries())
+    );
+    console.log("analysis dataset:", analysesDataset);
+    console.log(
+      "analysis dataset sorted record ids:",
+      analysesDataset.sortedRecordIds.length
+    );
+    console.log(
+      "analysis dataset columns:",
+      analysesDataset.columns.map((c) => `${c.name} (${c.displayName})`)
+    );
+
+    const hasSampleNameMap = sampleNameToId.size > 0;
+    console.log(
+      "Has sampleNameToId map:",
+      hasSampleNameMap,
+      "size:",
+      sampleNameToId.size
+    );
+    // Filter analysis records to only include those with valid sample IDs or at least a sample name when falling back
     console.log("=== Debugging Analysis Dataset ===");
     console.log("Total RecordIds:", analysesDataset?.sortedRecordIds?.length);
     console.log("Valid Sample GUIDs:", Array.from(validSampleGuids));
@@ -103,47 +245,33 @@ export class samplesPivotTable
     const filteredAnalysisRecordIds = analysesDataset.sortedRecordIds.filter(
       (recordId, index) => {
         const record = analysesDataset.records[recordId];
-        if (!record) {
-          console.warn(
-            `Record not found for recordId: ${recordId} (index: ${index})`
+        if (!record) return false;
+        // Prefer name matching via Sample column
+        const sampleNameRaw = getFirstValue(record, analysesDataset, [
+          "Sample",
+          "ID",
+          "cr2b6_samplename",
+        ]) as string | undefined;
+        const sampleName =
+          typeof sampleNameRaw === "string" ? sampleNameRaw.trim() : undefined;
+        const matched = hasSampleNameMap
+          ? !!(sampleName && sampleNameToId.has(sampleName))
+          : !!sampleName; // fallback: accept any record with a sample name
+        if (index < 3) {
+          console.log(
+            `Record[${index}] sampleName=${sampleName} matched=${matched}`
           );
-          return false;
         }
-
-        const sampleRef = record.getValue(
-          "cr2b6_sample"
-        ) as ComponentFramework.LookupValue;
-
-        if (!sampleRef) {
-          console.warn(`No 'cr2b6_sample' found for recordId: ${recordId}`);
-          return false;
-        }
-
-        console.log(
-          `Record[${index}] DataverseId: ${recordId}, sampleRef:`,
-          sampleRef
-        );
-
-        // Handle weird type issues with the ID
-        let sampleId = "Unknown";
-        if (typeof sampleRef.id === "string") {
-          sampleId = sampleRef.id;
-        } else if (typeof sampleRef.id === "object" && sampleRef.id !== null) {
-          const guidObj = sampleRef.id as { guid?: string };
-          sampleId = guidObj.guid ?? "Unknown";
-        }
-
-        console.log(`Sample ID extracted: ${sampleId}`);
-
-        const isValid =
-          sampleId !== "Unknown" && validSampleGuids.has(sampleId);
-        console.log(`Is sampleId in validSampleGuids?`, isValid);
-
-        return isValid;
+        return matched;
       }
     );
 
     console.log("Filtered Analysis Records:", filteredAnalysisRecordIds);
+    console.log(
+      "Starting to process",
+      filteredAnalysisRecordIds.length,
+      "filtered analysis records"
+    );
 
     // Create a map to store sample(name and id) and analysis values (method, value, expected, required)
     const sampleMethodMap: Record<
@@ -160,19 +288,58 @@ export class samplesPivotTable
     // ----- Use this block for PRODUCTION -----
     // Iterate through the analysis dataset records
     for (const recordId of filteredAnalysisRecordIds) {
+      console.log(`\n=== Processing Analysis Record ${recordId} ===`);
       const record = analysesDataset.records[recordId];
+
+      // Try to get sample info from lookup first, then fallback to text fields
       const sampleRef = record.getValue(
         "cr2b6_sample"
       ) as ComponentFramework.LookupValue;
-      const sampleName = sampleRef?.name ?? "Unknown Sample";
-      const sampleId =
-        typeof sampleRef?.id === "object" && sampleRef?.id !== null
-          ? (sampleRef.id as { guid: string }).guid
-          : "Unknown";
+
+      let sampleName = "Unknown Sample";
+      let sampleId = "Unknown";
+
+      if (sampleRef) {
+        // Using lookup reference
+        sampleName = sampleRef?.name ?? "Unknown Sample";
+        sampleId =
+          typeof sampleRef?.id === "object" && sampleRef?.id !== null
+            ? (sampleRef.id as { guid: string }).guid
+            : typeof sampleRef?.id === "string"
+            ? sampleRef.id
+            : "Unknown";
+      } else {
+        // Using text fields - get sample name and map to ID
+        const nameRaw = getFirstValue(record, analysesDataset, [
+          "Sample",
+          "ID",
+          "cr2b6_samplename",
+          "Name",
+        ]) as string | undefined;
+        sampleName = nameRaw?.trim() || "Unknown Sample";
+        if (hasSampleNameMap) {
+          if (sampleNameToId.has(sampleName)) {
+            sampleId = sampleNameToId.get(sampleName)!;
+          }
+        } else {
+          // fallback: no mapping available; use sampleName as a stable key/id in harness
+          sampleId = sampleName;
+        }
+      }
+
       const methodRef = record.getValue(
         "cr2b6_method"
       ) as ComponentFramework.LookupValue;
-      const method = methodRef?.name ?? "Unknown Method";
+      const method =
+        methodRef?.name ??
+        (getFirstValue(record, analysesDataset, [
+          "Method",
+          "cr2b6_methodname",
+        ]) as string | undefined) ??
+        "Unknown Method";
+
+      console.log(`Sample: ${sampleName} (ID: ${sampleId})`);
+      console.log(`Method: ${method}`);
 
       // ----- Use this block for TESTING -----
       // for (const recordId of analysesDataset.sortedRecordIds) {
@@ -184,20 +351,38 @@ export class samplesPivotTable
       //   const sampleId =
       //     (record.getValue("cr2b6_sampleid") as string) || "Unknown Method";
 
-      const value = (record.getValue("cr2b6_value") as string) ?? null;
-      const analysisId = (record.getValue("cr2b6_id") as string) ?? "";
+      const valueRaw = getFirstValue(record, analysesDataset, [
+        "Value",
+        "cr2b6_value",
+      ]) as string | number | null | undefined;
+      const valueStr =
+        valueRaw !== undefined && valueRaw !== null ? String(valueRaw) : "";
+      const analysisId =
+        (getFirstValue(record, analysesDataset, ["cr2b6_id", "ID"]) as
+          | string
+          | undefined) ?? "";
       const expectedValue =
-        (record.getValue("cr2b6_expectedvalue") as string) ?? "";
+        (getFirstValue(record, analysesDataset, [
+          "Expected Value",
+          "cr2b6_expectedvalue",
+        ]) as string | undefined) ?? "";
 
       const unit =
-        (record.getValue(
-          "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit"
-        ) as string) ?? "";
-      console.log("Unit:", unit);
+        (getFirstValue(record, analysesDataset, [
+          "Unit",
+          "Unit (Method) (Analytical Method)",
+          "a_bba5d516f7554068a842ff7ba08f80df.cr2b6_unit",
+        ]) as string | undefined) ?? "";
+
+      console.log(
+        `Value: ${valueStr}, Expected: ${expectedValue}, Unit: ${unit}`
+      );
+      console.log(`Analysis ID: ${analysisId}`);
 
       //create a new sample entry if it doesn't already exist
-      if (!sampleMethodMap[sampleId]) {
-        sampleMethodMap[sampleId] = {
+      const key = sampleId !== "Unknown" ? sampleId : sampleName;
+      if (!sampleMethodMap[key]) {
+        sampleMethodMap[key] = {
           name: sampleName,
           id: sampleId,
           values: {},
@@ -205,9 +390,9 @@ export class samplesPivotTable
       }
 
       // Add the analysis data to the sample entry
-      sampleMethodMap[sampleId].values[method] = {
+      sampleMethodMap[key].values[method] = {
         analysisId,
-        value: value,
+        value: valueStr,
         unit: unit,
         expected: expectedValue,
         required: true,
@@ -242,6 +427,10 @@ export class samplesPivotTable
       }
     );
     console.log("PivotData:", pivotData);
+    console.log("Final props being passed to Grid:");
+    console.log("- data.length:", pivotData.length);
+    console.log("- methods.length:", Array.from(methodNames).length);
+    console.log("- methods:", Array.from(methodNames));
 
     const props: IHelloWorldProps = {
       data: pivotData,
