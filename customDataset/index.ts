@@ -139,8 +139,9 @@ export class samplesPivotTable
     };
 
     // Log the datasets for debugging
+    const version = "0.0.20";
     console.log(
-      "Version 0.0.19 - Prefer Sample Name as ID; fallback when absent"
+      `Version ${version} - Unified CSV/Production Support with improved lookup handling`
     );
     console.log("Analysis dataset available:", !!analysesDataset);
     console.log("Sample dataset available:", !!sampleDataset);
@@ -298,26 +299,41 @@ export class samplesPivotTable
         
         // Method 3: Try GUID reference from production DataVerse data (cr2b6_sample)
         if (!sampleName) {
-          const sampleGuidRaw = getFirstValue(record, analysesDataset, [
-            "cr2b6_sample",
-          ]) as string | undefined;
+          // First try direct lookup value access
+          const sampleLookup = record.getValue("cr2b6_sample") as ComponentFramework.LookupValue;
+          let sampleGuidRaw: string | undefined;
           
-          let sampleGuid: string | undefined;
-          if (sampleGuidRaw) {
-            // Handle both direct GUID strings and formatted values like "Sample Name (GUID)"
-            if (sampleGuidRaw.includes('(') && sampleGuidRaw.includes(')')) {
-              const match = sampleGuidRaw.match(/\(([^)]+)\)$/);
-              sampleGuid = match ? match[1] : sampleGuidRaw;
-            } else {
-              sampleGuid = sampleGuidRaw;
-            }
+          if (sampleLookup && sampleLookup.id) {
+            // Extract GUID from lookup
+            sampleGuidRaw = typeof sampleLookup.id === "object" && sampleLookup.id !== null
+              ? (sampleLookup.id as { guid: string }).guid
+              : typeof sampleLookup.id === "string"
+              ? sampleLookup.id
+              : undefined;
           }
           
-          // Also try getting the raw value directly from the cr2b6_sample field
-          if (!sampleGuid) {
-            const directSampleValue = record.getValue("cr2b6_sample") || record.getFormattedValue("cr2b6_sample");
-            if (directSampleValue && typeof directSampleValue === 'string') {
-              sampleGuid = directSampleValue;
+          // Fallback to string-based field access
+          if (!sampleGuidRaw) {
+            sampleGuidRaw = getFirstValue(record, analysesDataset, [
+              "cr2b6_sample",
+            ]) as string | undefined;
+          }
+          
+          if (index < 3) {
+            console.log(`Record[${index}] Lookup debug:`, {
+              sampleLookup,
+              sampleGuidRaw,
+              lookupId: sampleLookup?.id,
+              lookupName: sampleLookup?.name
+            });
+          }
+          
+          let sampleGuid: string | undefined = sampleGuidRaw;
+          if (sampleGuidRaw) {
+            // Handle both direct GUID strings and formatted values like "Sample Name (GUID)"
+            if (typeof sampleGuidRaw === 'string' && sampleGuidRaw.includes('(') && sampleGuidRaw.includes(')')) {
+              const match = sampleGuidRaw.match(/\(([^)]+)\)$/);
+              sampleGuid = match ? match[1] : sampleGuidRaw;
             }
           }
           
@@ -381,7 +397,7 @@ export class samplesPivotTable
         "cr2b6_sample"
       ) as ComponentFramework.LookupValue;
 
-      if (sampleRef) {
+      if (sampleRef && sampleRef.id) {
         // Using lookup reference (Production DataVerse)
         sampleName = sampleRef?.name ?? "Unknown Sample";
         sampleId =
@@ -390,6 +406,7 @@ export class samplesPivotTable
             : typeof sampleRef?.id === "string"
             ? sampleRef.id
             : "Unknown";
+        console.log(`Production lookup found: ${sampleName} (${sampleId})`);
       } else {
         // Method 2: Try CSV Development data - Direct sample name (Sample column is primary for CSV)
         const directSampleName = getFirstValue(record, analysesDataset, [
