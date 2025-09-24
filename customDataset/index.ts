@@ -172,7 +172,7 @@ export class samplesPivotTable
       "Sample columns:",
       sampleDataset.columns.map((c) => `${c.name} (${c.displayName})`)
     );
-    console.log("=== Sample Record IDs ===");
+    console.log("=== Samples ===");
     sampleDataset.sortedRecordIds.forEach((recordId) => {
       const record = sampleDataset.records[recordId];
       const name = getFirstValue(record, sampleDataset, [
@@ -182,9 +182,7 @@ export class samplesPivotTable
         "Sample",
         "name",
       ]);
-      console.log(
-        `Sample ID: ${recordId}, Name: ${name}, GUID: ${record.getRecordId()}`
-      );
+      console.log(`Name: ${name}}`);
     });
 
     //get a list of sample IDs from the sample dataset
@@ -192,7 +190,7 @@ export class samplesPivotTable
       sampleDataset.sortedRecordIds.map((id) => {
         const record = sampleDataset.records[id];
         const recordId = record.getRecordId();
-        console.log(`Sample Record - ID: ${id}, RecordId: ${recordId}`);
+        //console.log(`Sample Record - ID: ${id}, RecordId: ${recordId}`);
         // In test mode, use the dataset ID instead of GUID
         return recordId === id ? id : recordId;
       })
@@ -247,6 +245,15 @@ export class samplesPivotTable
         );
       });
     }
+
+    analysesDataset.sortedRecordIds.forEach((recordId) => {
+      const record = analysesDataset.records[recordId];
+      const sampleName = getFirstValue(record, analysesDataset, [
+        "cr2b6_sample (Sample)",
+      ]);
+      console.log(`Analysis Sample Name: ${sampleName}}`);
+    });
+
     console.log(
       "analysis dataset sorted record ids:",
       analysesDataset.sortedRecordIds.length
